@@ -32,8 +32,8 @@ export function SalesChart({ data }: SalesChartProps) {
         return data.map(item => ({
             ...item,
             date: item.date, // Formato esperado "HH:mm" ou "DD/MM"
-            value: Number(item.value),
-            count: Number(item.count)
+            value: item.value === null ? null : Number(item.value),
+            count: item.count === null ? null : Number(item.count)
         }))
     }, [data])
 

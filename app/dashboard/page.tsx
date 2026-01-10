@@ -91,31 +91,42 @@ export default function DashboardPage() {
 
     // Fetch Dashboard Data (Mock implementation for now, replaced with real query logic later)
     React.useEffect(() => {
-        if (!dateRange?.from || !dateRange?.to) return;
+        if (!dateRange?.from) return;
 
         const today = new Date();
         const from = dateRange.from;
-        const to = dateRange.to;
+        const to = dateRange.to || dateRange.from;
         const daysDiff = differenceInDays(to, from);
 
         let chartData = [];
 
-        if (daysDiff === 0 && isSameDay(from, today)) {
-            // Case: Hoje (Hourly)
-            // We want "Hoje, 0:00" ... "Hoje, 23:59"
-            // Generates hourly points
-            for (let i = 0; i <= 23; i++) {
-                const label = `Hoje, ${i}:00`;
-                // For the last one, maybe 23:59? user asked for "Hoje, 23:59" at the end.
-                // let's just do 0 to 23 hours. 23:00 is close enough or I can add a dedicated 23:59 point.
-                chartData.push({ date: label, value: 0, count: 0 });
-            }
-            // Explicitly add 23:59 if we want the axis to show it exactly
-            chartData.push({ date: `Hoje, 23:59`, value: 0, count: 0 });
+        if (daysDiff === 0) {
+            // Case: Single Day (Hourly View) - Today or Past Date
+            const isToday = isSameDay(from, today);
+            const currentHour = new Date().getHours();
 
-            // Correction: User said "selecionaram hoje, aparece apenas Hoje, 0:00 e na outra ponta, Hoje, 23:59"
-            // My SalesChart component now forces showing the first and last tick. 
-            // So chartData[0] and chartData[last] must have these texts.
+            // Label base: "Hoje" or "1 jan"
+            let dateLabel = format(from, "d MMM", { locale: ptBR });
+            if (isToday) dateLabel = "Hoje";
+
+            for (let i = 0; i <= 23; i++) {
+                const label = `${dateLabel}, ${i}:00`;
+
+                // If Today, nullify future hours. If Past, show all.
+                const isFuture = isToday && i > currentHour;
+
+                chartData.push({
+                    date: label,
+                    value: isFuture ? null : 0,
+                    count: isFuture ? null : 0
+                });
+            }
+            // Add 23:59 endpoint
+            chartData.push({
+                date: `${dateLabel}, 23:59`,
+                value: isToday ? null : 0,
+                count: isToday ? null : 0
+            });
         } else {
             // Case: Range (Daily)
             for (let i = 0; i <= daysDiff; i++) {
