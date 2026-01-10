@@ -4,81 +4,228 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, LogOut } from "lucide-react"
+import { Loader2, DollarSign, TrendingUp, CreditCard, Globe, Percent, Undo, RefreshCcw, Barcode, ChevronDown, User } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { startOfDay, endOfDay, differenceInDays, addDays, format, isSameDay } from "date-fns"
+import { ptBR } from "date-fns/locale"
+
+import { MetricCard } from "@/components/dashboard/metric-card"
+import { SalesChart } from "@/components/dashboard/sales-chart"
+import { DateFilter } from "@/components/dashboard/date-range-filter"
+import { ProductFilter } from "@/components/dashboard/product-filter"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
+
+// Mock Data structure
+interface DashboardData {
+    netValue: number
+    salesCount: number
+    avgTicket: number
+    oneClickSales: number
+    checkoutConversion: number
+    expressConversion: number
+    referenceConversion: number
+    orderBumpSales: number
+    upsellSales: number
+    recoveredSales: number
+    refunds: number
+    chartData: any[]
+}
+
+const mockData: DashboardData = {
+    netValue: 0,
+    salesCount: 0,
+    avgTicket: 0,
+    oneClickSales: 0,
+    checkoutConversion: 0,
+    expressConversion: 0,
+    referenceConversion: 0,
+    orderBumpSales: 0,
+    upsellSales: 0,
+    recoveredSales: 0,
+    refunds: 0,
+    chartData: []
+}
 
 export default function DashboardPage() {
     const router = useRouter()
     const supabase = createClient()
-    const [loading, setLoading] = React.useState(false)
+    const [loading, setLoading] = React.useState(true)
     const [userEmail, setUserEmail] = React.useState<string | null>(null)
 
-    React.useEffect(() => {
-        const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                setUserEmail(user.email || null)
-            } else {
-                router.push('/')
-            }
-        }
-        getUser()
-    }, [router, supabase])
+    // Filters
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+        from: startOfDay(new Date()),
+        to: endOfDay(new Date())
+    })
+    const [selectedProductId, setSelectedProductId] = React.useState<string | null>("all")
+    const [products, setProducts] = React.useState<any[]>([])
 
-    const handleSignOut = async () => {
-        setLoading(true)
-        try {
-            await supabase.auth.signOut()
-            router.push('/')
-            router.refresh()
-        } catch (error) {
-            console.error("Error signing out:", error)
-        } finally {
+    // Data
+    const [data, setData] = React.useState<DashboardData>(mockData)
+
+    // Initial Load
+    React.useEffect(() => {
+        const init = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                router.push('/')
+                return
+            }
+            setUserEmail(user.email || null)
+
+            // Fetch Products
+            const { data: productsData } = await supabase.from('products').select('id, name')
+            if (productsData) {
+                setProducts(productsData)
+            }
+
             setLoading(false)
         }
-    }
+        init()
+    }, [router, supabase])
+
+    // Fetch Dashboard Data (Mock implementation for now, replaced with real query logic later)
+    React.useEffect(() => {
+        if (!dateRange?.from || !dateRange?.to) return;
+
+        const today = new Date();
+        const from = dateRange.from;
+        const to = dateRange.to;
+        const daysDiff = differenceInDays(to, from);
+
+        let chartData = [];
+
+        if (daysDiff === 0 && isSameDay(from, today)) {
+            // Case: Hoje (Hourly)
+            // We want "Hoje, 0:00" ... "Hoje, 23:59"
+            // Generates hourly points
+            for (let i = 0; i <= 23; i++) {
+                const label = `Hoje, ${i}:00`;
+                // For the last one, maybe 23:59? user asked for "Hoje, 23:59" at the end.
+                // let's just do 0 to 23 hours. 23:00 is close enough or I can add a dedicated 23:59 point.
+                chartData.push({ date: label, value: 0, count: 0 });
+            }
+            // Explicitly add 23:59 if we want the axis to show it exactly
+            chartData.push({ date: `Hoje, 23:59`, value: 0, count: 0 });
+
+            // Correction: User said "selecionaram hoje, aparece apenas Hoje, 0:00 e na outra ponta, Hoje, 23:59"
+            // My SalesChart component now forces showing the first and last tick. 
+            // So chartData[0] and chartData[last] must have these texts.
+        } else {
+            // Case: Range (Daily)
+            for (let i = 0; i <= daysDiff; i++) {
+                const currentDay = addDays(from, i);
+                let label = format(currentDay, "d MMM", { locale: ptBR });
+
+                // If it's today, show "Hoje"
+                if (isSameDay(currentDay, today)) {
+                    label = "Hoje";
+                } else {
+                    // Capitalize month (jan -> Jan)
+                    label = label.charAt(0).toUpperCase() + label.slice(1);
+                }
+
+                chartData.push({ date: label, value: 0, count: 0 });
+            }
+        }
+
+        setData({
+            netValue: 0, // 10489.89 example from user, keeping 0 for now as per "0,00" in image default
+            salesCount: 0,
+            avgTicket: 0,
+            oneClickSales: 0,
+            checkoutConversion: 0,
+            expressConversion: 0,
+            referenceConversion: 0,
+            orderBumpSales: 0,
+            upsellSales: 0,
+            recoveredSales: 0,
+            refunds: 0,
+            chartData: chartData
+        })
+
+    }, [dateRange, selectedProductId])
+
+    const formatCurrency = (val: number) => new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(val)
+    const formatNumber = (val: number) => val.toString()
+    const formatPercent = (val: number) => `${val}%`
 
     return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40 p-4 font-sans">
-            <div className="w-full max-w-md space-y-6">
-                <div className="flex flex-col items-center text-center mb-6">
-                    <span className="text-4xl font-bold tracking-tighter mb-2">
-                        <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                        <span className="text-foreground">pay</span>
-                    </span>
+        <div className="flex flex-col h-full w-full font-sans cursor-default bg-background">
+            {/* Header / Top Bar */}
+            <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm">
+                <div className="flex flex-1 items-center justify-end">
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                        <User className="h-5 w-5" />
+                        <span className="sr-only">Menu do usuário</span>
+                    </Button>
                 </div>
+            </header>
 
-                <Card className="border-border/50 bg-card shadow-lg">
-                    <CardHeader className="text-center pb-2">
-                        <CardTitle className="text-2xl font-bold tracking-tight">Bem vindo a Cartpay</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6 pt-4 text-center">
-                        {userEmail && (
-                            <p className="text-muted-foreground">
-                                Logado como: <span className="font-medium text-foreground">{userEmail}</span>
-                            </p>
-                        )}
-
-                        <div className="pt-4">
-                            <Button
-                                variant="destructive"
-                                className="w-full font-bold h-11"
-                                onClick={handleSignOut}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Sair
-                                    </>
-                                )}
-                            </Button>
+            <main className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-background">
+                <div className="mx-auto w-[90%] xl:w-[80%] max-w-7xl py-8 space-y-8">
+                    {/* Page Title & Actions */}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+                        <div className="flex items-center gap-2">
+                            <DateFilter date={dateRange} setDate={setDateRange} />
+                            <ProductFilter
+                                products={products}
+                                selectedProductId={selectedProductId}
+                                onSelectProduct={setSelectedProductId}
+                            />
                         </div>
-                    </CardContent>
-                </Card>
-            </div>
+                    </div>
+
+                    {/* Top Section: Chart + 2 Main Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Chart takes 2 columns */}
+                        <div className="md:col-span-2">
+                            <SalesChart data={data.chartData} />
+                        </div>
+
+                        {/* Main Cards Stack */}
+                        <div className="space-y-6 flex flex-col">
+                            <div className="flex-1">
+                                <MetricCard
+                                    title="Valor líquido"
+                                    value={formatCurrency(data.netValue)}
+                                    icon={DollarSign}
+                                    type="$"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <MetricCard
+                                    title="Vendas"
+                                    value={formatNumber(data.salesCount)}
+                                    icon={TrendingUp}
+                                    type="N"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Section: Remaining Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <MetricCard title="Ticket médio" value={formatCurrency(data.avgTicket)} icon={DollarSign} type="$" />
+                        <MetricCard title="Vendas 1-click da rede Cartpay" value={formatCurrency(data.oneClickSales)} subValue="0%" icon={Globe} type="$" />
+                        <MetricCard title="Conversão checkout" value={formatPercent(data.checkoutConversion)} icon={Percent} type="%" />
+
+                        <MetricCard title="Conversão Multicaixa Express" value={formatPercent(data.expressConversion)} icon={CreditCard} type="%" />
+                        <MetricCard title="Conversão Referência" value={formatPercent(data.referenceConversion)} icon={Barcode} type="%" />
+                        <MetricCard title="Vendas orderbumps" value={formatCurrency(data.orderBumpSales)} icon={DollarSign} type="$" />
+
+                        <MetricCard title="Vendas upsell" value={formatCurrency(data.upsellSales)} icon={DollarSign} type="$" />
+                        <MetricCard title="Vendas recuperadas" value={formatCurrency(data.recoveredSales)} icon={RefreshCcw} type="$" />
+                        <MetricCard title="Reembolso" value={formatCurrency(data.refunds)} subValue="0%" icon={Undo} type="$" />
+                    </div>
+                </div>
+            </main>
         </div>
     )
 }
