@@ -66,6 +66,21 @@ export function Sidebar() {
             </div>
 
             {/* Footer Section (Sair) */}
+            {/* Meta Faturamento */}
+            <div className="px-4 py-4 space-y-2">
+                <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-muted-foreground">Faturamento</span>
+                    <span className="text-foreground">0 / 1M</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
+                    <div
+                        className="h-full rounded-full bg-[oklch(0.55_0.22_264.53)] shadow-sm"
+                        style={{ width: '0%' }}
+                    />
+                </div>
+            </div>
+
+            {/* Footer Section (Sair) */}
             <div className="border-t p-4">
                 <Button
                     variant="ghost"

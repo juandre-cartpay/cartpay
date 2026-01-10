@@ -40,7 +40,7 @@ export function SalesChart({ data }: SalesChartProps) {
     return (
         <Card className="border-border/50 bg-card shadow-sm h-[270px]">
             <CardContent className="p-6 h-full flex flex-col">
-                <div className="flex-1 w-full min-h-0">
+                <div className="flex-1 w-full min-h-0 [&_.recharts-surface]:outline-none">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                             <defs>
