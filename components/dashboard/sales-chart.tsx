@@ -38,7 +38,7 @@ export function SalesChart({ data }: SalesChartProps) {
     }, [data])
 
     return (
-        <Card className="border-border/50 bg-card shadow-sm h-[270px]">
+        <Card className="rounded-3xl border-border/50 bg-card shadow-sm h-[270px]">
             <CardContent className="p-6 h-full flex flex-col">
                 <div className="flex-1 w-full min-h-0 [&_.recharts-surface]:outline-none">
                     <ResponsiveContainer width="100%" height="100%">

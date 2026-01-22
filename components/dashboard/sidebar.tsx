@@ -2,10 +2,12 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, Package, Store, ShoppingCart, Undo2, Calendar, Wallet, DollarSign, Users, LogOut } from "lucide-react"
+import { LayoutDashboard, Package, Store, ShoppingCart, Undo2, Calendar, Wallet, DollarSign, Users, LogOut, Gift } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+
+import Image from "next/image"
 
 const sidebarItems = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -14,7 +16,7 @@ const sidebarItems = [
     { title: "Reembolsos", href: "/dashboard/refunds", icon: Undo2 },
     { title: "Assinaturas", href: "/dashboard/subscriptions", icon: Calendar },
     { title: "Financeiro", href: "/dashboard/finance", icon: Wallet },
-    { title: "Indique e Ganhe", href: "/dashboard/referrals", icon: DollarSign },
+    { title: "Indique e Ganhe", href: "/dashboard/referrals", icon: Gift },
 ]
 
 export function Sidebar() {
@@ -31,10 +33,17 @@ export function Sidebar() {
     return (
         <div className="flex w-64 flex-col border-r bg-background h-full">
             {/* Logo Section */}
-            <div className="flex h-16 items-center border-b px-6">
+            <div className="flex h-16 items-center border-b px-6 gap-2">
+                <Image
+                    src="/logo-icon.png"
+                    alt="KwizaPay"
+                    width={32}
+                    height={32}
+                    className="rounded-lg w-8 h-8"
+                />
                 <span className="text-2xl font-bold tracking-tighter">
-                    <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                    <span className="text-foreground">pay</span>
+                    <span className="text-foreground">Kwiza</span>
+                    <span className="text-foreground">Pay</span>
                 </span>
             </div>
 
@@ -69,7 +78,7 @@ export function Sidebar() {
             {/* Meta Faturamento */}
             <div className="px-4 py-4 space-y-2">
                 <div className="flex items-center justify-between text-sm font-medium">
-                    <span className="text-muted-foreground">Faturamento</span>
+                    <span className="text-black dark:text-white">Faturamento</span>
                     <span className="text-foreground">0 / 1M</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">

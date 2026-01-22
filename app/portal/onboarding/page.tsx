@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -166,7 +167,7 @@ export default function OnboardingPage() {
                     <div className={`mt-0.5 h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${answers.registrationType === 'buyer' ? 'border-[oklch(0.55_0.22_264.53)]' : 'border-muted-foreground/30 group-hover:border-muted-foreground/50'}`}>
                         {answers.registrationType === 'buyer' && <div className="h-3 w-3 rounded-full bg-[oklch(0.55_0.22_264.53)]" />}
                     </div>
-                    <Label className="cursor-pointer font-normal text-base leading-tight pt-0.5 text-foreground/90">Preciso de ajuda com um produto que comprei pela Cartpay</Label>
+                    <Label className="cursor-pointer font-normal text-base leading-tight pt-0.5 text-foreground/90">Preciso de ajuda com um produto que comprei pela KwizaPay</Label>
                 </div>
             </div>
 
@@ -292,11 +293,18 @@ export default function OnboardingPage() {
         <div className="min-h-screen w-full bg-muted/40 font-sans flex flex-col">
             {/* Header */}
             <header className="w-full bg-card h-16 flex items-center justify-between px-6 shadow-sm border-b border-border/50 relative z-50">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     {/* Logo with explicit colors from login page */}
+                    <Image
+                        src="/logo-icon.png"
+                        alt="KwizaPay"
+                        width={32}
+                        height={32}
+                        className="rounded-lg w-8 h-8"
+                    />
                     <span className="text-2xl font-bold tracking-tighter cursor-default">
-                        <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                        <span className="text-foreground">pay</span>
+                        <span className="text-foreground">Kwiza</span>
+                        <span className="text-foreground">Pay</span>
                     </span>
                 </div>
 

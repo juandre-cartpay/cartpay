@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -47,8 +48,8 @@ export default function ForgotPasswordPage() {
                     <div className="flex flex-col items-center text-center">
                         <div className="mb-2 flex items-center justify-center">
                             <span className="text-4xl font-bold tracking-tighter">
-                                <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                                <span className="text-foreground">pay</span>
+                                <span className="text-[oklch(0.55_0.22_264.53)]">Kwiza</span>
+                                <span className="text-foreground">Pay</span>
                             </span>
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight">Redefinir a senha</h1>
@@ -81,10 +82,17 @@ export default function ForgotPasswordPage() {
                 {/* Header Outside Card */}
                 <div className="flex flex-col items-center text-center">
                     {/* Logo Section - Text Only */}
-                    <div className="mb-2 flex items-center justify-center">
+                    <div className="mb-6 flex items-center justify-center gap-3">
+                        <Image
+                            src="/logo-icon.png"
+                            alt="KwizaPay"
+                            width={48}
+                            height={48}
+                            className="rounded-xl w-12 h-12 shadow-sm"
+                        />
                         <span className="text-4xl font-bold tracking-tighter">
-                            <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                            <span className="text-foreground">pay</span>
+                            <span className="text-foreground">Kwiza</span>
+                            <span className="text-foreground">Pay</span>
                         </span>
                     </div>
 

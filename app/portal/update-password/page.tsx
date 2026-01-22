@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -122,10 +123,17 @@ export default function UpdatePasswordPage() {
             <div className="w-full max-w-md space-y-6">
                 {/* Header Outside Card */}
                 <div className="flex flex-col items-center text-center">
-                    <div className="mb-2 flex items-center justify-center">
+                    <div className="mb-6 flex items-center justify-center gap-3">
+                        <Image
+                            src="/logo-icon.png"
+                            alt="KwizaPay"
+                            width={48}
+                            height={48}
+                            className="rounded-xl w-12 h-12 shadow-sm"
+                        />
                         <span className="text-4xl font-bold tracking-tighter">
-                            <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                            <span className="text-foreground">pay</span>
+                            <span className="text-foreground">Kwiza</span>
+                            <span className="text-foreground">Pay</span>
                         </span>
                     </div>
 

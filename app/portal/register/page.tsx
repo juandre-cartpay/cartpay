@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -245,10 +246,17 @@ export default function RegisterPage() {
                 {/* Header Outside Card */}
                 <div className="flex flex-col items-center text-center">
                     {/* Logo Section - Text Only */}
-                    <div className="mb-2 flex items-center justify-center">
+                    <div className="mb-6 flex items-center justify-center gap-3">
+                        <Image
+                            src="/logo-icon.png"
+                            alt="KwizaPay"
+                            width={48}
+                            height={48}
+                            className="rounded-xl w-12 h-12 shadow-sm"
+                        />
                         <span className="text-4xl font-bold tracking-tighter">
-                            <span className="text-[oklch(0.55_0.22_264.53)]">Cart</span>
-                            <span className="text-foreground">pay</span>
+                            <span className="text-foreground">Kwiza</span>
+                            <span className="text-foreground">Pay</span>
                         </span>
                     </div>
 
@@ -393,7 +401,7 @@ export default function RegisterPage() {
                                         htmlFor="terms"
                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground font-normal"
                                     >
-                                        Eu li e aceito os <Link href="#" className="underline hover:text-foreground">termos de uso</Link>, <Link href="#" className="underline hover:text-foreground">termos de licença de uso de software</Link>, <Link href="#" className="underline hover:text-foreground">política de conteúdo</Link> da Cartpay
+                                        Eu li e aceito os <Link href="#" className="underline hover:text-foreground">termos de uso</Link>, <Link href="#" className="underline hover:text-foreground">termos de licença de uso de software</Link>, <Link href="#" className="underline hover:text-foreground">política de conteúdo</Link> da KwizaPay
                                     </label>
                                     {termsError && (
                                         <p className="text-xs text-red-500 mt-1">(Esse campo é obrigatório)</p>

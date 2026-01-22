@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Loader2, DollarSign, TrendingUp, CreditCard, Globe, Percent, Undo, RefreshCcw, Barcode, ChevronDown, User } from "lucide-react"
+import { Loader2, DollarSign, TrendingUp, CreditCard, Globe, Percent, Undo, RefreshCcw, Barcode, ChevronDown, User, Wallet, ShoppingCart, Undo2, Layers, ArrowUpRight } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { startOfDay, endOfDay, differenceInDays, addDays, format, isSameDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -206,7 +206,7 @@ export default function DashboardPage() {
                                 <MetricCard
                                     title="Valor líquido"
                                     value={formatCurrency(data.netValue)}
-                                    icon={DollarSign}
+                                    icon={Wallet}
                                     type="$"
                                 />
                             </div>
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                                 <MetricCard
                                     title="Vendas"
                                     value={formatNumber(data.salesCount)}
-                                    icon={TrendingUp}
+                                    icon={ShoppingCart}
                                     type="N"
                                 />
                             </div>
@@ -224,16 +224,16 @@ export default function DashboardPage() {
                     {/* Bottom Section: Remaining Cards Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard title="Ticket médio" value={formatCurrency(data.avgTicket)} icon={DollarSign} type="$" />
-                        <MetricCard title="Vendas 1-click da rede Cartpay" value={formatCurrency(data.oneClickSales)} subValue="0%" icon={Globe} type="$" />
+                        <MetricCard title="Vendas 1-click da rede KwizaPay" value={formatCurrency(data.oneClickSales)} subValue="0%" icon={Globe} type="$" />
                         <MetricCard title="Conversão checkout" value={formatPercent(data.checkoutConversion)} icon={Percent} type="%" />
 
-                        <MetricCard title="Conversão Multicaixa Express" value={formatPercent(data.expressConversion)} icon={CreditCard} type="%" />
-                        <MetricCard title="Conversão Referência" value={formatPercent(data.referenceConversion)} icon={Barcode} type="%" />
-                        <MetricCard title="Vendas orderbumps" value={formatCurrency(data.orderBumpSales)} icon={DollarSign} type="$" />
+                        <MetricCard title="Conversão express" value={formatPercent(data.expressConversion)} icon={CreditCard} type="%" />
+                        <MetricCard title="Conversão referência" value={formatPercent(data.referenceConversion)} icon={Barcode} type="%" />
+                        <MetricCard title="Vendas order bump" value={formatCurrency(data.orderBumpSales)} subValue="0%" icon={Layers} type="$" />
 
-                        <MetricCard title="Vendas upsell" value={formatCurrency(data.upsellSales)} icon={DollarSign} type="$" />
-                        <MetricCard title="Vendas recuperadas" value={formatCurrency(data.recoveredSales)} icon={RefreshCcw} type="$" />
-                        <MetricCard title="Reembolso" value={formatCurrency(data.refunds)} subValue="0%" icon={Undo} type="$" />
+                        <MetricCard title="Vendas upsell" value={formatCurrency(data.upsellSales)} subValue="0%" icon={ArrowUpRight} type="$" />
+                        <MetricCard title="Vendas recuperadas" value={formatCurrency(data.recoveredSales)} subValue="0%" icon={RefreshCcw} type="$" />
+                        <MetricCard title="Reembolso" value={formatCurrency(data.refunds)} subValue="0%" icon={Undo2} type="$" />
                     </div>
                 </div>
             </main>
