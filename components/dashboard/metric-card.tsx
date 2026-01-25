@@ -11,19 +11,19 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, subValue, icon: Icon, type }: MetricCardProps) {
     return (
-        <Card className="rounded-3xl border-border/50 bg-card shadow-sm hover:shadow-md transition-shadow">
+        <Card className="rounded-xl border-border/50 bg-card shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-2 bg-muted rounded-full">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
+                <div className="p-2 bg-muted/50 rounded-full">
+                    <Icon className="h-5 w-5 text-foreground" />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-muted-foreground">{title}</span>
+                    <span className="text-sm font-medium text-foreground">{title}</span>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold tracking-tight">
+                        <span className="text-2xl font-semibold tracking-tight">
                             {value}
                         </span>
                         {subValue && (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-foreground">
                                 {subValue}
                             </p>
                         )}

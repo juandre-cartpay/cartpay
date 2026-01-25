@@ -100,7 +100,7 @@ export default function OnboardingPage() {
             if (currentStep < 3) {
                 setStep(s => s + 1)
             } else {
-                router.push('/dashboard')
+                router.push('/')
                 router.refresh()
             }
         } catch (error) {

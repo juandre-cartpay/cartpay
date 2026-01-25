@@ -11,9 +11,9 @@ interface SalesChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white p-3 border border-border/50 rounded-lg shadow-lg">
+            <div className="bg-card text-card-foreground p-3 border border-border/50 rounded-lg shadow-lg">
                 <p className="text-sm font-medium mb-1">{label}</p>
-                <p className="text-lg font-bold text-[oklch(0.55_0.22_264.53)]">
+                <p className="text-lg font-semibold text-[oklch(0.55_0.22_264.53)]">
                     {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(payload[0].value)}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -38,7 +38,7 @@ export function SalesChart({ data }: SalesChartProps) {
     }, [data])
 
     return (
-        <Card className="rounded-3xl border-border/50 bg-card shadow-sm h-[270px]">
+        <Card className="rounded-xl border-border/50 bg-card shadow-sm h-[270px]">
             <CardContent className="p-6 h-full flex flex-col">
                 <div className="flex-1 w-full min-h-0 [&_.recharts-surface]:outline-none">
                     <ResponsiveContainer width="100%" height="100%">
@@ -54,7 +54,7 @@ export function SalesChart({ data }: SalesChartProps) {
                                 dataKey="date"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                                tick={{ fontSize: 12, fill: "var(--foreground)" }}
                                 dy={10}
                                 ticks={[formattedData[0]?.date, formattedData[formattedData.length - 1]?.date]}
                                 interval={0}

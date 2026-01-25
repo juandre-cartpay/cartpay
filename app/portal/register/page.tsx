@@ -265,7 +265,7 @@ export default function RegisterPage() {
                     </h1>
 
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Ou <Link href="/" className="text-[oklch(0.55_0.22_264.53)] font-medium hover:underline">entrar na sua conta existente</Link>
+                        Ou <Link href="/auth/login" className="text-[oklch(0.55_0.22_264.53)] font-medium hover:underline">entrar na sua conta existente</Link>
                     </p>
                 </div>
 

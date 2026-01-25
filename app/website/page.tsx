@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
     return (
-        <div className="flex min-h-screen bg-white">
+        <div className="flex min-h-screen bg-background">
 
             {/* Lado Esquerdo - Conteúdo */}
-            <div className="flex-1 flex flex-col justify-center px-8 lg:px-24 py-12 bg-white">
+            <div className="flex-1 flex flex-col justify-center px-8 lg:px-24 py-12 bg-background">
 
                 <div className="max-w-xl animate-in fade-in slide-in-from-left-6 duration-1000">
                     {/* Logo - Agora junto do conteúdo */}
@@ -26,11 +26,11 @@ export default function LandingPage() {
                     </div>
 
                     <div className="space-y-5">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[#0f172a] leading-[1.1]">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
                             Crie, venda e escale o seu curso online
                         </h1>
 
-                        <p className="text-xl md:text-2xl lg:text-[25px] text-slate-500 max-w-lg leading-tight font-normal">
+                        <p className="text-xl md:text-2xl lg:text-[25px] text-muted-foreground max-w-lg leading-tight font-normal">
                             Transforme o seu conhecimento em um negócio na internet
                         </p>
 
@@ -42,7 +42,7 @@ export default function LandingPage() {
                             </Link>
 
                             <Link href="#">
-                                <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 shadow-sm transition-all hover:scale-[1.02]">
+                                <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 border-border hover:border-foreground/20 hover:bg-muted text-foreground shadow-sm transition-all hover:scale-[1.02]">
                                     Chame um gerente
                                 </Button>
                             </Link>
@@ -52,7 +52,7 @@ export default function LandingPage() {
             </div>
 
             {/* Lado Direito - Imagem Full Height */}
-            <div className="hidden md:block flex-1 relative bg-slate-100 overflow-hidden h-screen">
+            <div className="hidden md:block flex-1 relative bg-muted overflow-hidden h-screen">
                 <Image
                     src="/yoga.webp"
                     alt="Instrutora usando a plataforma"

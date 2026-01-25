@@ -73,7 +73,6 @@ export default function DashboardPage() {
         const init = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) {
-                router.push('/')
                 return
             }
             setUserEmail(user.email || null)
