@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { HelpCircle, Check, ChevronsUpDown, Loader2, X } from "lucide-react"
+import { HelpCircle, Check, ChevronsUpDown, X } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { EmailInput } from "@/components/ui/email-input"
 
 import {
     Command,
@@ -174,17 +176,6 @@ export default function RegisterPage() {
         }
 
         try {
-            // Check if user already exists in profiles (workaround for Supabase enumeration protection)
-            const { data: existingUser } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('email', formData.email)
-                .maybeSingle()
-
-            if (existingUser) {
-                throw new Error("User already registered")
-            }
-
             const { error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -199,8 +190,9 @@ export default function RegisterPage() {
                 throw signUpError
             }
 
-            router.push('/onboarding')
+            // Refresh the router to update Server Components (like layouts) with the new session
             router.refresh()
+            router.push('/onboarding')
         } catch (err: any) {
             let errorMessage = "Ocorreu um erro ao criar a conta."
             if (err.message === "User already registered") {
@@ -208,6 +200,9 @@ export default function RegisterPage() {
             } else if (err.message.includes("Password should be at least")) {
                 errorMessage = "A senha deve ter no mínimo 6 caracteres."
             }
+            // Handle the case where Supabase doesn't return a specific error for existing users (security)
+            // but we still want to catch generic errors. 
+            // Note: If email confirmation is ON, Supabase returns success even if user exists.
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -277,7 +272,7 @@ export default function RegisterPage() {
                             {/* E-mail */}
                             <div className="space-y-2">
                                 <Label htmlFor="email">E-mail</Label>
-                                <Input
+                                <EmailInput
                                     id="email"
                                     type="email"
                                     required
@@ -295,7 +290,7 @@ export default function RegisterPage() {
                             {/* Repetir E-mail */}
                             <div className="space-y-2">
                                 <Label htmlFor="confirmEmail">Repetir e-mail</Label>
-                                <Input
+                                <EmailInput
                                     id="confirmEmail"
                                     type="email"
                                     required
@@ -421,7 +416,7 @@ export default function RegisterPage() {
                                 disabled={loading}
                                 type="submit"
                             >
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Criar conta"}
+                                {loading ? <Spinner className="mr-2 h-4 w-4" /> : "Criar conta"}
                             </Button>
                         </form>
                     </CardContent>

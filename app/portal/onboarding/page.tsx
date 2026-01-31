@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { ChevronRight, ChevronLeft, User, LogOut, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function OnboardingPage() {
     const router = useRouter()
@@ -98,7 +99,7 @@ export default function OnboardingPage() {
             if (error) throw error
 
             if (currentStep < 3) {
-                setStep(s => s + 1)
+                setStep(s => (s || 0) + 1)
             } else {
                 router.push('/')
                 router.refresh()
@@ -117,7 +118,7 @@ export default function OnboardingPage() {
         else if (step === 2) data = { revenue: answers.revenue }
         else if (step === 3) data = { instagram: answers.instagram }
 
-        saveAndAdvance(step, data)
+        saveAndAdvance(step || 1, data)
     }
 
     const handleSelect = (key: string, value: string) => {
@@ -128,7 +129,7 @@ export default function OnboardingPage() {
 
         // Auto-advance
         setTimeout(() => {
-            saveAndAdvance(step, { [dbColumn]: value })
+            saveAndAdvance(step || 1, { [dbColumn]: value })
         }, 250)
     }
 
@@ -138,7 +139,7 @@ export default function OnboardingPage() {
     }
 
     const handleBack = () => {
-        if (step > 1) {
+        if (step && step > 1) {
             setStep(step - 1)
         }
     }
@@ -171,15 +172,7 @@ export default function OnboardingPage() {
                 </div>
             </div>
 
-            <div className="border-t border-border mt-8 pt-6 flex justify-end">
-                <Button
-                    onClick={handleNext}
-                    disabled={!answers.registrationType}
-                    className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white min-w-[140px] font-bold h-11"
-                >
-                    Continuar <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-            </div>
+
         </div>
     )
 
@@ -210,22 +203,7 @@ export default function OnboardingPage() {
                 ))}
             </div>
 
-            <div className="border-t border-border mt-8 pt-6 flex justify-between">
-                <Button
-                    variant="ghost"
-                    onClick={handleBack}
-                    className="text-[oklch(0.55_0.22_264.53)] hover:text-[oklch(0.55_0.22_264.53)]/80 hover:bg-[oklch(0.55_0.22_264.53)]/10 font-medium h-11"
-                >
-                    <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
-                </Button>
-                <Button
-                    onClick={handleNext}
-                    disabled={!answers.revenue}
-                    className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white min-w-[140px] font-bold h-11"
-                >
-                    Continuar <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-            </div>
+
         </div>
     )
 
@@ -257,24 +235,16 @@ export default function OnboardingPage() {
                     </div>
                 </div>
             </div>
-
-            <div className="border-t border-border mt-8 pt-6 flex justify-between">
-                <Button
-                    variant="ghost"
-                    onClick={handleBack}
-                    className="text-[oklch(0.55_0.22_264.53)] hover:text-[oklch(0.55_0.22_264.53)]/80 hover:bg-[oklch(0.55_0.22_264.53)]/10 font-medium h-11"
-                >
-                    <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
-                </Button>
+            <div className="mt-8 flex justify-end">
                 <Button
                     onClick={handleNext}
                     disabled={!answers.instagram || answers.instagram.length < 2 || isSaving}
-                    className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white min-w-[140px] font-bold h-11 transition-all"
+                    className="bg-transparent border border-[oklch(0.55_0.22_264.53)] text-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/10 font-bold transition-all hover:scale-[1.02] shadow-sm min-w-[140px] h-11"
                 >
                     {isSaving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Spinner className="h-4 w-4" />
                     ) : (
-                        <>Continuar <ChevronRight className="ml-2 h-4 w-4" /></>
+                        "Continuar"
                     )}
                 </Button>
             </div>
@@ -284,70 +254,73 @@ export default function OnboardingPage() {
     if (step === null) {
         return (
             <div className="min-h-screen w-full bg-muted/40 font-sans flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin text-[oklch(0.55_0.22_264.53)]" />
+                <Spinner className="h-10 w-10 text-foreground" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen w-full bg-muted/40 font-sans flex flex-col">
-            {/* Header */}
-            <header className="w-full bg-card h-16 flex items-center justify-between px-6 shadow-sm border-b border-border/50 relative z-50">
-                <div className="flex items-center gap-3">
-                    {/* Logo with explicit colors from login page */}
-                    <Image
-                        src="/logo-icon.png"
-                        alt="KwizaPay"
-                        width={32}
-                        height={32}
-                        className="rounded-lg w-8 h-8"
-                    />
-                    <span className="text-2xl font-bold tracking-tighter cursor-default">
-                        <span className="text-foreground">Kwiza</span>
-                        <span className="text-foreground">Pay</span>
-                    </span>
-                </div>
-
-                <div className="relative">
-                    <div
-                        className="h-10 w-10 rounded-full bg-muted/50 border border-border flex items-center justify-center cursor-pointer hover:bg-muted transition-colors"
-                        onClick={() => setShowUserMenu(!showUserMenu)}
-                    >
-                        <User className="h-5 w-5 text-muted-foreground" />
+        <div className="h-screen w-full bg-background p-2 md:p-4 overflow-hidden font-sans">
+            <div className="flex flex-col h-full w-full overflow-hidden rounded-xl border border-border bg-muted/40 shadow-xl relative">
+                {/* Header */}
+                <header className="w-full bg-card h-16 flex items-center justify-between px-6 shadow-sm border-b border-border/50 relative z-50 shrink-0">
+                    <div className="flex items-center gap-3">
+                        {/* Logo with explicit colors from login page */}
+                        <Image
+                            src="/logo-icon.png"
+                            alt="KwizaPay"
+                            width={32}
+                            height={32}
+                            className="rounded-lg w-8 h-8"
+                        />
+                        <span className="text-2xl font-bold tracking-tighter cursor-default">
+                            <span className="text-foreground">Kwiza</span>
+                            <span className="text-foreground">Pay</span>
+                        </span>
                     </div>
 
-                    {showUserMenu && (
-                        <div className="absolute right-0 top-12 w-64 bg-card rounded-lg shadow-lg border border-border/50 py-2 animate-in fade-in zoom-in-95 duration-200">
-                            <div className="px-4 py-3 border-b border-border/50">
-                                <p className="text-sm font-medium text-foreground truncate">{userEmail || 'Carregando...'}</p>
-                            </div>
-                            <div
-                                className="px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground hover:bg-muted/50 cursor-pointer transition-colors"
-                                onClick={handleLogout}
-                            >
-                                <LogOut className="h-4 w-4" />
-                                <span>Sair</span>
-                            </div>
+                    <div className="relative flex items-center gap-4">
+                        <span className="text-sm font-medium text-foreground">
+                            {userEmail || ''}
+                        </span>
+                        <div
+                            className="h-10 w-10 rounded-full bg-muted/50 border border-border flex items-center justify-center cursor-pointer hover:bg-muted transition-colors"
+                            onClick={() => setShowUserMenu(!showUserMenu)}
+                        >
+                            <User className="h-5 w-5 text-muted-foreground" />
                         </div>
-                    )}
-                </div>
-            </header>
 
-            {/* Content */}
-            <main className="flex-1 flex flex-col items-center justify-center p-4 space-y-8">
-                <h1 className="text-2xl font-bold text-foreground text-center">
-                    {step === 1 && "Qual é o seu tipo de cadastro?"}
-                    {step === 2 && "Quanto você faturou com infoprodutos nos últimos 12 meses?"}
-                    {step === 3 && "Qual é o seu Instagram?"}
-                </h1>
-                <Card className="w-full max-w-2xl border-border/50 bg-card shadow-lg animate-in fade-in zoom-in-95 duration-300">
-                    <CardContent className="p-10">
-                        {step === 1 && renderStep1()}
-                        {step === 2 && renderStep2()}
-                        {step === 3 && renderStep3()}
-                    </CardContent>
-                </Card>
-            </main>
+                        {showUserMenu && (
+                            <div className="absolute right-0 top-12 w-48 bg-card rounded-lg shadow-lg border border-border/50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                <div
+                                    className="px-4 py-3 flex items-center gap-2 text-sm text-red-500 hover:bg-muted/50 cursor-pointer transition-colors"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Sair</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </header>
+
+                {/* Content */}
+                <main className="flex-1 flex flex-col items-center justify-center p-4 space-y-8 overflow-y-auto">
+                    <Card className="w-full max-w-2xl border-border/50 bg-card shadow-lg animate-in fade-in zoom-in-95 duration-300">
+                        <CardContent className="p-10">
+                            <h1 className="text-2xl font-bold text-foreground text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {step === 1 && "Qual é o seu tipo de cadastro?"}
+                                {step === 2 && "Quanto você faturou com infoprodutos nos últimos 12 meses?"}
+                                {step === 3 && "Qual é o seu Instagram?"}
+                            </h1>
+
+                            {step === 1 && renderStep1()}
+                            {step === 2 && renderStep2()}
+                            {step === 3 && renderStep3()}
+                        </CardContent>
+                    </Card>
+                </main>
+            </div>
         </div>
     )
 }

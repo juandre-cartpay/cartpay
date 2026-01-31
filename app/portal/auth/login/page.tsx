@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2, X } from "lucide-react"
+import { X } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { EmailInput } from "@/components/ui/email-input"
 
 // Login Page Component
 export default function LoginPage() {
@@ -21,6 +23,13 @@ export default function LoginPage() {
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [emailError, setEmailError] = React.useState<string | null>(null)
+
+    React.useEffect(() => {
+        const savedEmail = localStorage.getItem('last_login_email')
+        if (savedEmail) {
+            setEmail(savedEmail)
+        }
+    }, [])
 
     const validateEmail = (value: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -53,6 +62,9 @@ export default function LoginPage() {
             if (error) {
                 throw error
             }
+
+            // Save email for next login
+            localStorage.setItem('last_login_email', email)
 
             // Check onboarding status
             if (data.user) {
@@ -120,9 +132,10 @@ export default function LoginPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="email">E-mail</Label>
-                                <Input
+                                <EmailInput
                                     id="email"
-                                    type="email"
+                                    name="email"
+                                    autoComplete="email"
                                     required
                                     className={`h-11 bg-muted/20 focus-visible:ring-0 focus-visible:ring-offset-0 transition-all focus-visible:border-[oklch(0.55_0.22_264.53)] focus-visible:shadow-[0_0_0_3px_oklch(0.55_0.22_264.53)/0.2] ${emailError ? "border-red-500" : ""
                                         }`}
@@ -141,6 +154,8 @@ export default function LoginPage() {
                                 <Label htmlFor="password">Senha</Label>
                                 <Input
                                     id="password"
+                                    name="password"
+                                    autoComplete="current-password"
                                     type="password"
                                     required
                                     className="h-11 bg-muted/20 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[oklch(0.55_0.22_264.53)] focus-visible:shadow-[0_0_0_3px_oklch(0.55_0.22_264.53)/0.2] transition-all"
@@ -169,7 +184,7 @@ export default function LoginPage() {
                                 type="submit"
                                 disabled={loading}
                             >
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Entrar"}
+                                {loading ? <Spinner className="mr-2 h-4 w-4" /> : "Entrar"}
                             </Button>
                         </form>
                     </CardContent>

@@ -5,9 +5,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { EmailInput } from "@/components/ui/email-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, Check } from "lucide-react"
+import { Check, X } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = React.useState("")
@@ -30,7 +32,12 @@ export default function ForgotPasswordPage() {
             const data = await res.json()
 
             if (!res.ok) {
-                throw new Error(data.error || "Erro ao enviar e-mail")
+                // Translate common Supabase errors
+                let errorMessage = data.error || "Erro ao enviar e-mail"
+                if (errorMessage.includes("User with this email not found")) {
+                    errorMessage = "E-mail não encontrado no sistema."
+                }
+                throw new Error(errorMessage)
             }
 
             setSuccess(true)
@@ -81,7 +88,7 @@ export default function ForgotPasswordPage() {
             <div className="w-full max-w-md space-y-6">
                 {/* Header Outside Card */}
                 <div className="flex flex-col items-center text-center">
-                    {/* Logo Section - Text Only */}
+                    {/* Logo Section */}
                     <div className="mb-6 flex items-center justify-center gap-3">
                         <Image
                             src="/logo-icon.png"
@@ -111,7 +118,7 @@ export default function ForgotPasswordPage() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">E-mail</Label>
-                                <Input
+                                <EmailInput
                                     id="email"
                                     type="email"
                                     required
@@ -121,14 +128,19 @@ export default function ForgotPasswordPage() {
                                 />
                             </div>
 
-                            {error && <p className="text-red-500 text-sm">{error}</p>}
+                            {error && (
+                                <div className="flex items-center gap-3 rounded bg-red-50 p-4 text-sm font-medium text-red-600 border-l-4 border-red-500 animate-in fade-in-50">
+                                    <X className="h-5 w-5" />
+                                    <span>{error}</span>
+                                </div>
+                            )}
 
                             <Button
                                 type="submit"
                                 disabled={loading}
                                 className="w-full bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold text-lg h-12 shadow-sm transition-all mt-2 hover:scale-[1.01]"
                             >
-                                {loading ? <Loader2 className="animate-spin" /> : "Redefinir senha"}
+                                {loading ? <Spinner className="h-6 w-6 text-white" /> : "Redefinir senha"}
                             </Button>
                         </form>
                     </CardContent>

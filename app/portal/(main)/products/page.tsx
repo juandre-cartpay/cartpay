@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
-import { Search, MoreVertical, ChevronLeft, ChevronRight, Info } from "lucide-react"
+import { MoreVertical, ChevronLeft, ChevronRight, Info, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import {
@@ -78,6 +79,7 @@ export default function ProductsPage() {
             <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm">
                 <div className="flex flex-1 items-center justify-end">
                     <Button variant="ghost" size="icon" className="rounded-full">
+                        <User className="h-5 w-5" />
                         <span className="sr-only">Menu do usuário</span>
                     </Button>
                 </div>
@@ -89,162 +91,132 @@ export default function ProductsPage() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <h1 className="text-3xl font-bold tracking-tight text-foreground">Produtos</h1>
 
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold transition-all hover:scale-[1.02] shadow-sm">
-                                    Criar produto
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent className="w-[400px] sm:w-[540px] flex flex-col h-full">
-                                <form action={createProduct} className="flex flex-col h-full">
-                                    <SheetHeader>
-                                        <SheetTitle>Criar novo produto</SheetTitle>
-                                        <SheetDescription>
-                                            Adicione um novo produto ao seu catálogo. Você pode editar mais detalhes após a criação.
-                                        </SheetDescription>
-                                    </SheetHeader>
+                        <div className="flex items-center gap-2 border border-border rounded-full p-1 bg-background">
+                            <button
+                                onClick={() => setActiveTab('my_products')}
+                                className={`group relative overflow-hidden px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'my_products'
+                                    ? 'bg-accent text-foreground after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[oklch(0.55_0.22_264.53)] after:shadow-[0_-4px_16px_2px_oklch(0.55_0.22_264.53)]'
+                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                    }`}
+                            >
+                                Meus produtos
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('coproductions')}
+                                className={`group relative overflow-hidden px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'coproductions'
+                                    ? 'bg-accent text-foreground after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[oklch(0.55_0.22_264.53)] after:shadow-[0_-4px_16px_2px_oklch(0.55_0.22_264.53)]'
+                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                    }`}
+                            >
+                                Minhas co-produções
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('affiliations')}
+                                className={`group relative overflow-hidden px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'affiliations'
+                                    ? 'bg-accent text-foreground after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[oklch(0.55_0.22_264.53)] after:shadow-[0_-4px_16px_2px_oklch(0.55_0.22_264.53)]'
+                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                    }`}
+                            >
+                                Minhas afiliações
+                            </button>
+                            {/* Gap for Sheet Trigger */}
 
-                                    <div className="flex-1 overflow-y-auto py-6">
-                                        <div className="grid gap-6">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="name">Nome do Produto</Label>
-                                                <Input name="name" id="name" placeholder="Digite o nome do produto" className="h-10" required />
-                                            </div>
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold h-9 px-6 rounded-full transition-all hover:scale-[1.02] shadow-sm">
+                                        Criar produto
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent className="w-[400px] sm:w-[540px] flex flex-col h-full">
+                                    <form action={createProduct} className="flex flex-col h-full">
+                                        <SheetHeader>
+                                            <SheetTitle>Criar novo produto</SheetTitle>
+                                            <SheetDescription>
+                                                Adicione um novo produto ao seu catálogo. Você pode editar mais detalhes após a criação.
+                                            </SheetDescription>
+                                        </SheetHeader>
 
-                                            <div className="space-y-2">
-                                                <Label>Tipo de Produto</Label>
-                                                <Select name="type" defaultValue="digital">
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="digital">Produto Digital</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+                                        <div className="flex-1 overflow-y-auto py-6">
+                                            <div className="grid gap-6">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="name">Nome do Produto</Label>
+                                                    <Input name="name" id="name" placeholder="Digite o nome do produto" className="h-10" required />
+                                                </div>
 
-                                            <div className="space-y-2">
-                                                <Label>Tipo de Pagamento</Label>
-                                                <Select name="payment_type" defaultValue="single">
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="single">Pagamento Único</SelectItem>
-                                                        <SelectItem value="subscription">Assinatura</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                                <div className="space-y-2">
+                                                    <Label>Tipo de Produto</Label>
+                                                    <Select name="type" defaultValue="digital">
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecione" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="digital">Produto Digital</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>Tipo de Pagamento</Label>
+                                                    <Select name="payment_type" defaultValue="single">
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecione" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="single">Pagamento Único</SelectItem>
+                                                            <SelectItem value="subscription">Assinatura</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <SheetFooter className="mt-auto border-t pt-4">
-                                        <div className="flex w-full justify-end gap-2">
-                                            <SheetClose asChild>
-                                                <Button variant="outline" type="button">Cancelar</Button>
-                                            </SheetClose>
-                                            <Button type="submit" className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold">
-                                                Criar produto
-                                            </Button>
-                                        </div>
-                                    </SheetFooter>
-                                </form>
-                            </SheetContent>
-                        </Sheet>
+                                        <SheetFooter className="mt-auto pt-4">
+                                            <div className="flex w-full justify-end gap-2">
+                                                <SheetClose asChild>
+                                                    <Button variant="outline" type="button" className="h-9 px-6 rounded-full">Cancelar</Button>
+                                                </SheetClose>
+                                                <Button type="submit" className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold h-9 px-6 rounded-full transition-all hover:scale-[1.02] shadow-sm">
+                                                    Criar produto
+                                                </Button>
+                                            </div>
+                                        </SheetFooter>
+                                    </form>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
                     </div>
 
                     {/* Main Content Card */}
-                    <div className="bg-card text-card-foreground rounded-xl shadow-sm border border-border flex flex-col min-h-[500px]">
+                    <div className="bg-background text-card-foreground rounded-xl shadow-sm border border-border flex flex-col">
 
-                        {/* Tabs */}
-                        <div className="px-6 pt-6 pb-4">
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setActiveTab('my_products')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'my_products'
-                                        ? 'bg-[oklch(0.55_0.22_264.53)]/10 text-[oklch(0.55_0.22_264.53)]'
-                                        : 'text-foreground hover:bg-muted hover:text-foreground'
-                                        }`}
-                                >
-                                    Meus produtos
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('coproductions')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'coproductions'
-                                        ? 'bg-[oklch(0.55_0.22_264.53)]/10 text-[oklch(0.55_0.22_264.53)]'
-                                        : 'text-foreground hover:bg-muted hover:text-foreground'
-                                        }`}
-                                >
-                                    Minhas co-produções
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('affiliations')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'affiliations'
-                                        ? 'bg-[oklch(0.55_0.22_264.53)]/10 text-[oklch(0.55_0.22_264.53)]'
-                                        : 'text-foreground hover:bg-muted hover:text-foreground'
-                                        }`}
-                                >
-                                    Minhas afiliações
-                                </button>
+
+
+
+
+
+                        {/* Table Structure - Only show header if there are products */}
+                        {!loading && products.length > 0 && (
+                            <div className="flex w-full items-center gap-4 px-6 py-3 border-b border-border mt-2 bg-muted/20">
+                                <div className="flex-1 text-sm font-medium text-foreground tracking-wider">Criado em</div>
+                                <div className="flex-1 text-sm font-medium text-foreground tracking-wider">Produto</div>
+                                <div className="flex-[2] text-sm font-medium text-foreground tracking-wider">Tipo</div>
+                                <div className="flex-1 text-sm font-medium text-foreground tracking-wider">Status</div>
+                                <div className="w-[80px] text-sm font-medium text-foreground tracking-wider text-right pr-2">Ações</div>
                             </div>
-                        </div>
-
-                        {/* Search and Filter */}
-                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="relative w-full sm:max-w-xs">
-                                <Input
-                                    placeholder="Buscar produtos..."
-                                    className="pr-10 pl-4 h-10 border-input bg-background rounded-lg focus-visible:ring-1 focus-visible:ring-[oklch(0.55_0.22_264.53)]"
-                                />
-                                <Search className="absolute right-3 top-2.5 h-5 w-5 text-foreground/50" />
-                            </div>
-
-                            <div className="relative w-full sm:w-auto">
-                                <select
-                                    className="w-full sm:w-[180px] appearance-none h-10 pl-4 pr-10 bg-background border border-input rounded-lg text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[oklch(0.55_0.22_264.53)] transition-colors cursor-pointer text-foreground"
-                                    defaultValue="Todos"
-                                >
-                                    <option>Todos</option>
-                                    <option>Ativo</option>
-                                    <option>Em análise</option>
-                                    <option>Recusado</option>
-                                    <option>Rascunho</option>
-                                    <option>Banido</option>
-                                </select>
-                                <div className="absolute right-3 top-0 h-full flex items-center pointer-events-none text-foreground">
-                                    <div className="flex flex-col gap-[2px]">
-                                        <svg width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-50">
-                                            <path d="M4 0L7.4641 4.5H0.535898L4 0Z" fill="currentColor" />
-                                        </svg>
-                                        <svg width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M4 5L0.535898 0.5L7.4641 0.5L4 5Z" fill="currentColor" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Table Structure */}
-                        <div className="flex w-full items-center gap-4 px-6 py-3 border-y border-border mt-2 bg-muted/20">
-                            <div className="flex-1 text-[13px] font-medium text-foreground tracking-wider">Criado em</div>
-                            <div className="flex-1 text-[13px] font-medium text-foreground tracking-wider">Produto</div>
-                            <div className="flex-[2] text-[13px] font-medium text-foreground tracking-wider">Tipo</div>
-                            <div className="flex-1 text-[13px] font-medium text-foreground tracking-wider">Status</div>
-                            <div className="w-[80px] text-[13px] font-medium text-foreground tracking-wider text-right pr-2">Ações</div>
-                        </div>
+                        )}
 
                         {/* Table Body */}
-                        <div className="flex-1 flex flex-col min-h-[300px]">
+                        <div className="flex flex-col">
                             {loading ? (
-                                <div className="flex-1 flex items-center justify-center">
-                                    <p className="text-muted-foreground">Carregando...</p>
+                                <div className="flex items-center justify-center py-12">
+                                    <Spinner className="h-8 w-8 text-foreground" />
                                 </div>
                             ) : products.length > 0 ? (
                                 <div className="w-full">
                                     {products.map((product) => (
                                         <div
                                             key={product.id}
-                                            className="flex w-full items-center gap-4 px-6 py-4 border-b border-border hover:bg-muted/30 transition-colors cursor-default"
+                                            className="flex w-full items-center gap-4 px-6 py-4 border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors cursor-default"
                                         >
                                             <div className="flex-1 text-sm font-normal text-foreground">
                                                 {format(new Date(product.created_at), "dd/MM/yyyy", { locale: ptBR })}
@@ -259,7 +231,7 @@ export default function ProductsPage() {
                                                 </span>
                                             </div>
                                             <div className="flex-1">
-                                                <span className="inline-flex items-center rounded-full bg-yellow-400/10 px-2.5 py-0.5 text-xs font-medium text-yellow-500">
+                                                <span className="inline-flex items-center rounded-md border border-foreground/20 bg-transparent px-3 py-1.5 text-sm font-normal text-foreground">
                                                     {product.status === 'draft' ? 'Rascunho' : product.status}
                                                 </span>
                                             </div>
@@ -296,7 +268,7 @@ export default function ProductsPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <p className="text-foreground font-medium">Nenhum produto encontrado.</p>
                                 </div>
                             )}

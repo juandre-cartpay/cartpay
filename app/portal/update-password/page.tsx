@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, X } from "lucide-react"
+import { X } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function UpdatePasswordPage() {
     const router = useRouter()
@@ -184,7 +185,7 @@ export default function UpdatePasswordPage() {
                                 disabled={loading}
                                 className="w-full bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold text-lg h-12 shadow-sm transition-all mt-2 hover:scale-[1.01]"
                             >
-                                {loading ? <Loader2 className="animate-spin" /> : "Alterar senha"}
+                                {loading ? <Spinner className="h-6 w-6 text-white" /> : "Alterar senha"}
                             </Button>
                         </form>
                     </CardContent>

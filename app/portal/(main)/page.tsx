@@ -169,7 +169,10 @@ export default function DashboardPage() {
         <div className="flex flex-col h-full w-full font-sans cursor-default bg-background">
             {/* Header / Top Bar */}
             <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm">
-                <div className="flex flex-1 items-center justify-end">
+                <div className="flex flex-1 items-center justify-end gap-3">
+                    {!loading && userEmail && (
+                        <span className="text-sm font-medium">{userEmail}</span>
+                    )}
                     <Button variant="ghost" size="icon" className="rounded-full">
                         <User className="h-5 w-5" />
                         <span className="sr-only">Menu do usuário</span>
