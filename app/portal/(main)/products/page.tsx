@@ -231,7 +231,7 @@ export default function ProductsPage() {
                                                 </span>
                                             </div>
                                             <div className="flex-1">
-                                                <span className="inline-flex items-center rounded-md border border-foreground/20 bg-transparent px-3 py-1.5 text-sm font-normal text-foreground">
+                                                <span className="inline-flex items-center rounded-full border border-foreground/20 bg-transparent px-3 py-1 text-sm font-normal text-foreground">
                                                     {product.status === 'draft' ? 'Rascunho' : product.status}
                                                 </span>
                                             </div>

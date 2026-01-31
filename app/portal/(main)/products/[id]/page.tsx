@@ -38,12 +38,19 @@ import {
     User,
     Smartphone,
     FileText,
-    Plus
+    Plus,
+    Trash2,
+    Link as LinkIcon,
+    ExternalLink,
+    Link2,
+    X
 } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
-import { updateProduct } from "../actions"
+import { updateProduct, createOffer, deleteOffer } from "../actions"
+import { EmailInput } from "@/components/ui/email-input"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { SuccessNotification } from "@/components/ui/success-notification"
 
 export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params)
@@ -67,20 +74,32 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert("O arquivo é muito grande. O tamanho máximo permitido é 10MB.")
+                return
+            }
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
         }
     }
     const [product, setProduct] = React.useState<any>(null)
     const [productName, setProductName] = React.useState("")
+    const [supportEmail, setSupportEmail] = React.useState("")
     const [message, setMessage] = React.useState<string | null>(null)
+    const [errors, setErrors] = React.useState<Record<string, string>>({})
 
     // Payments State
     const [paymentSettings, setPaymentSettings] = React.useState({
         express: true,
         reference: false
     })
+
     const [defaultMethod, setDefaultMethod] = React.useState("express")
+
+    // Offers State
+    const [offers, setOffers] = React.useState<any[]>([])
+    const [isCreatingOffer, setIsCreatingOffer] = React.useState(false)
+    const [isDeletingOffer, setIsDeletingOffer] = React.useState<string | null>(null)
 
     React.useEffect(() => {
         const fetchProduct = async () => {
@@ -99,6 +118,26 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
 
             setProduct(data)
             setProductName(data.name || "")
+            setSupportEmail(data.support_email || "")
+
+            // Payment settings sync
+            setPaymentSettings({
+                express: data.payment_express_enabled ?? true,
+                reference: data.payment_reference_enabled ?? false
+            })
+            if (data.payment_default_method) {
+                setDefaultMethod(data.payment_default_method)
+            }
+
+            // Fetch Offers
+            const { data: offersData } = await supabase
+                .from('offers')
+                .select('*')
+                .eq('product_id', id)
+                .order('created_at', { ascending: false })
+
+            setOffers(offersData || [])
+
             setLoading(false)
         }
 
@@ -109,12 +148,60 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
         e.preventDefault()
         setSaving(true)
         setMessage(null)
+        setErrors({})
 
         const formData = new FormData(e.currentTarget)
+        const newErrors: Record<string, string> = {}
+
+        // Validation Logic
+        const whatsapp = formData.get("support_whatsapp") as string
+        if (!whatsapp || whatsapp.trim() === "") {
+            newErrors.support_whatsapp = "O número de suporte é obrigatório"
+        }
+
+        const email = formData.get("support_email") as string
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!email || !emailRegex.test(email)) {
+            newErrors.support_email = "O e-mail de suporte deve ser um e-mail válido"
+        }
+
+        const url = formData.get("sales_page_url") as string
+        if (url) {
+            try {
+                new URL(url)
+            } catch (_) {
+                newErrors.sales_page_url = "A URL da página de vendas deve ser uma URL válida"
+            }
+        } else {
+            newErrors.sales_page_url = "A URL da página de vendas é obrigatória"
+        }
+
+        const deliveryUrl = formData.get("confirmation_email_body") as string
+        if (deliveryUrl) {
+            try {
+                new URL(deliveryUrl)
+            } catch (_) {
+                newErrors.confirmation_email_body = "A URL de acesso ao produto deve ser válida"
+            }
+        } else {
+            newErrors.confirmation_email_body = "A URL de acesso ao produto é obrigatória"
+        }
+
+        // Image Validation
+        const imageFile = formData.get("image") as File
+        if ((!imageFile || imageFile.size === 0) && !product.image_url) {
+            newErrors.image = "A imagem do produto é obrigatória"
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            setSaving(false)
+            return
+        }
+
         try {
             await updateProduct(id, formData)
-            setMessage("Produto atualizado com sucesso!")
-            setTimeout(() => setMessage(null), 3000)
+            setMessage("Alterações salvas com sucesso!")
         } catch (err) {
             console.error(err)
             setMessage("Erro ao atualizar produto.")
@@ -150,6 +237,11 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
     return (
         <div className="flex flex-col h-full w-full font-sans bg-background overflow-hidden">
             {/* Top Navigation - Global Header */}
+            <SuccessNotification
+                message={message || ""}
+                isVisible={!!message && !message.includes("Erro")}
+                onClose={() => setMessage(null)}
+            />
             <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background px-6 gap-6 shrink-0">
                 <div className="flex items-center gap-4 min-w-fit">
                     {/* Left blank for now or could be breadcrumb later */}
@@ -242,8 +334,15 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                         id="guarantee_days"
                                                         name="guarantee_days"
                                                         type="number"
+                                                        max={30}
+                                                        min={7}
                                                         defaultValue={product.guarantee_days || 7}
-                                                        className="bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground"
+                                                        className="bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        onChange={(e) => {
+                                                            const val = parseInt(e.target.value);
+                                                            if (val < 7) e.target.value = "7";
+                                                            if (val > 7) e.target.value = "7";
+                                                        }}
                                                     />
                                                 </div>
 
@@ -253,21 +352,41 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                         <Input
                                                             id="support_whatsapp"
                                                             name="support_whatsapp"
-                                                            placeholder="(00) 00000-0000"
+                                                            placeholder="(000) 000-000-000"
                                                             defaultValue={product.support_whatsapp || ''}
-                                                            className="bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground"
+                                                            className={`bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground ${errors.support_whatsapp ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                                            maxLength={16}
+                                                            onChange={(e) => {
+                                                                let value = e.target.value.replace(/\D/g, "");
+                                                                if (value.startsWith("244")) value = value.substring(3);
+                                                                value = value.substring(0, 9);
+
+                                                                if (value.length === 0) {
+                                                                    e.target.value = "";
+                                                                    return;
+                                                                }
+
+                                                                let formatted = "+244";
+                                                                if (value.length > 0) formatted += " " + value.substring(0, 3);
+                                                                if (value.length > 3) formatted += " " + value.substring(3, 6);
+                                                                if (value.length > 6) formatted += " " + value.substring(6, 9);
+
+                                                                e.target.value = formatted;
+                                                            }}
                                                         />
+                                                        {errors.support_whatsapp && <p className="text-red-500 text-sm mt-1">{errors.support_whatsapp}</p>}
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label htmlFor="support_email" className="text-foreground font-normal">E-mail de suporte</Label>
-                                                        <Input
+                                                        <EmailInput
                                                             id="support_email"
                                                             name="support_email"
-                                                            type="email"
                                                             placeholder="support@example.com"
-                                                            defaultValue={product.support_email || ''}
-                                                            className="bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground"
+                                                            value={supportEmail}
+                                                            onChange={(e) => setSupportEmail(e.target.value)}
+                                                            className={`bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground ${errors.support_email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                                         />
+                                                        {errors.support_email && <p className="text-red-500 text-sm mt-1">{errors.support_email}</p>}
                                                     </div>
                                                 </div>
 
@@ -282,20 +401,27 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                             name="sales_page_url"
                                                             placeholder="https://example.com/sales-page"
                                                             defaultValue={product.sales_page_url || ''}
-                                                            className="pl-10 bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground"
+                                                            className={`pl-10 bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground ${errors.sales_page_url ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                                         />
                                                     </div>
+                                                    {errors.sales_page_url && <p className="text-red-500 text-sm mt-1">{errors.sales_page_url}</p>}
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="confirmation_email_body" className="text-foreground font-normal">E-mail de Confirmação de Compra</Label>
-                                                    <Textarea
-                                                        id="confirmation_email_body"
-                                                        name="confirmation_email_body"
-                                                        defaultValue={product.confirmation_email_body || ''}
-                                                        placeholder="Obrigado pela sua compra! Seus detalhes de acesso estão abaixo:"
-                                                        className="min-h-[140px] bg-background border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground resize-y p-4"
-                                                    />
+                                                    <Label htmlFor="confirmation_email_body" className="text-foreground font-normal">Acesso ao Produto (URL)</Label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                                            <LinkIcon className="h-4 w-4" />
+                                                        </span>
+                                                        <Input
+                                                            id="confirmation_email_body"
+                                                            name="confirmation_email_body"
+                                                            placeholder="https://drive.google.com/..."
+                                                            defaultValue={product.confirmation_email_body || ''}
+                                                            className={`pl-10 bg-background h-12 border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground ${errors.confirmation_email_body ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                                        />
+                                                    </div>
+                                                    {errors.confirmation_email_body && <p className="text-red-500 text-sm mt-1">{errors.confirmation_email_body}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -307,7 +433,8 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                 <Label className="text-foreground font-normal">Imagem do Produto</Label>
                                                 <div
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="border-2 border-dashed border-foreground/30 rounded-xl flex flex-col items-center justify-center text-center gap-4 min-h-[220px] cursor-pointer hover:border-foreground transition-colors overflow-hidden relative group"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className={`border-2 border-dashed ${errors.image ? "border-red-500" : "border-foreground/30"} rounded-xl flex flex-col items-center justify-center text-center gap-4 min-h-[220px] cursor-pointer hover:border-foreground transition-colors overflow-hidden relative group`}
                                                 >
                                                     {previewUrl || product.image_url ? (
                                                         <div className="absolute inset-0 w-full h-full">
@@ -316,8 +443,24 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                                 alt="Preview"
                                                                 className="w-full h-full object-cover"
                                                             />
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                                                 <p className="text-white text-sm font-medium">Alterar imagem</p>
+                                                            </div>
+                                                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 rounded-full"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setPreviewUrl(null);
+                                                                        setProduct({ ...product, image_url: null });
+                                                                        if (fileInputRef.current) fileInputRef.current.value = "";
+                                                                    }}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
                                                             </div>
                                                         </div>
                                                     ) : (
@@ -327,7 +470,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                             </div>
                                                             <div className="space-y-1 p-4">
                                                                 <p className="text-sm font-medium">Arraste e solte uma imagem, ou clique para selecionar.</p>
-                                                                <p className="text-xs text-muted-foreground">PNG, JPG ou JPEG até 5MB.</p>
+                                                                <p className="text-xs text-muted-foreground">PNG, JPG ou JPEG até 10MB.</p>
                                                             </div>
                                                         </>
                                                     )}
@@ -340,6 +483,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                     accept="image/png, image/jpeg, image/jpg"
                                                     onChange={handleImageChange}
                                                 />
+                                                {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image}</p>}
                                             </div>
 
                                             {/* Info Card Widget */}
@@ -348,7 +492,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                     <div className="space-y-2">
                                                         <Label className="text-foreground font-normal text-sm">Tipo do Produto</Label>
                                                         <div className="flex">
-                                                            <span className="inline-flex items-center rounded-md border border-foreground/20 bg-transparent px-3 py-1.5 text-sm font-normal text-foreground">
+                                                            <span className="inline-flex items-center rounded-full border border-foreground/20 bg-transparent px-3 py-1 text-sm font-normal text-foreground">
                                                                 {product.type === 'digital' ? 'Digital' : 'Físico'}
                                                             </span>
                                                             <input type="hidden" name="type" value={product.type} />
@@ -358,7 +502,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                     <div className="space-y-2">
                                                         <Label className="text-foreground font-normal text-sm">Tipo do pagamento</Label>
                                                         <div className="flex">
-                                                            <span className="inline-flex items-center rounded-md border border-foreground/20 bg-transparent px-3 py-1.5 text-sm font-normal text-foreground">
+                                                            <span className="inline-flex items-center rounded-full border border-foreground/20 bg-transparent px-3 py-1 text-sm font-normal text-foreground">
                                                                 {product.payment_type === 'single' ? 'Pagamento Único' : 'Assinatura'}
                                                             </span>
                                                             <input type="hidden" name="payment_type" value={product.payment_type} />
@@ -368,7 +512,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                     <div className="space-y-2">
                                                         <Label className="text-foreground font-normal text-sm">Status</Label>
                                                         <div className="flex">
-                                                            <span className="inline-flex items-center rounded-md border border-foreground/20 bg-transparent px-3 py-1.5 text-sm font-normal text-foreground">
+                                                            <span className="inline-flex items-center rounded-full border border-foreground/20 bg-transparent px-3 py-1 text-sm font-normal text-foreground">
                                                                 {product.status === 'draft' ? 'Rascunho' :
                                                                     product.status === 'active' ? 'Ativo' :
                                                                         product.status === 'inactive' ? 'Inativo' :
@@ -487,7 +631,31 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                 </Button>
                                             </SheetTrigger>
                                             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col h-full">
-                                                <div className="flex flex-col h-full">
+                                                <form
+                                                    action={async (formData) => {
+                                                        setIsCreatingOffer(true);
+                                                        try {
+                                                            await createOffer(formData);
+                                                            // Refresh offers locally
+                                                            const supabase = createClient();
+                                                            const { data: offersData } = await supabase
+                                                                .from('offers')
+                                                                .select('*')
+                                                                .eq('product_id', id)
+                                                                .order('created_at', { ascending: false });
+                                                            setOffers(offersData || []);
+
+                                                            // Close sheet (hacky but works for now without controlled state)
+                                                            document.getElementById('close-offer-sheet')?.click();
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        } finally {
+                                                            setIsCreatingOffer(false);
+                                                        }
+                                                    }}
+                                                    className="flex flex-col h-full"
+                                                >
+                                                    <input type="hidden" name="product_id" value={id} />
                                                     <SheetHeader>
                                                         <SheetTitle>Criar nova oferta</SheetTitle>
                                                         <SheetDescription>
@@ -499,15 +667,17 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                         <div className="grid gap-6">
                                                             <div className="space-y-2">
                                                                 <Label htmlFor="offer-name">Nome da Oferta</Label>
-                                                                <Input id="offer-name" placeholder="Ex: Promoção de Verão" className="h-10" />
+                                                                <Input id="offer-name" name="name" placeholder="Ex: Promoção de Verão" className="h-10" required />
                                                             </div>
 
                                                             <div className="space-y-2">
                                                                 <Label htmlFor="offer-price">Preço</Label>
                                                                 <Input
                                                                     id="offer-price"
+                                                                    name="price"
                                                                     placeholder="0,00 Kz"
                                                                     className="h-10"
+                                                                    required
                                                                     onChange={(e) => {
                                                                         const value = e.target.value.replace(/\D/g, "");
                                                                         if (value) {
@@ -522,6 +692,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                                 <Label htmlFor="offer-original-price">Preço Original (sem desconto) - opcional</Label>
                                                                 <Input
                                                                     id="offer-original-price"
+                                                                    name="original_price"
                                                                     placeholder="0,00 Kz"
                                                                     className="h-10"
                                                                     onChange={(e) => {
@@ -536,7 +707,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
 
                                                             <div className="space-y-2">
                                                                 <Label>Domínio</Label>
-                                                                <Select defaultValue="platform">
+                                                                <Select name="domain" defaultValue="platform">
                                                                     <SelectTrigger className="h-10">
                                                                         <SelectValue />
                                                                     </SelectTrigger>
@@ -548,7 +719,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
 
                                                             <div className="space-y-2">
                                                                 <Label htmlFor="offer-slug">Slug da URL</Label>
-                                                                <Input id="offer-slug" placeholder="minha-oferta" className="h-10" />
+                                                                <Input id="offer-slug" name="slug" placeholder="minha-oferta" className="h-10" required />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -556,14 +727,15 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                     <SheetFooter className="mt-auto pt-4">
                                                         <div className="flex w-full justify-end gap-2">
                                                             <SheetClose asChild>
-                                                                <Button variant="outline" type="button" className="h-9 px-6 rounded-full">Cancelar</Button>
+                                                                <Button id="close-offer-sheet" variant="outline" type="button" className="h-9 px-6 rounded-full">Cancelar</Button>
                                                             </SheetClose>
-                                                            <Button type="button" className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold h-9 px-6 rounded-full transition-all hover:scale-[1.02] shadow-sm">
+                                                            <Button type="submit" disabled={isCreatingOffer} className="bg-[oklch(0.55_0.22_264.53)] hover:bg-[oklch(0.55_0.22_264.53)]/90 text-white font-bold h-9 px-6 rounded-full transition-all hover:scale-[1.02] shadow-sm">
+                                                                {isCreatingOffer ? <Spinner className="h-4 w-4 mr-2" /> : null}
                                                                 Criar Oferta
                                                             </Button>
                                                         </div>
                                                     </SheetFooter>
-                                                </div>
+                                                </form>
                                             </SheetContent>
                                         </Sheet>
                                     </div>
@@ -581,10 +753,58 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                                                 <div className="flex-[0.5] text-sm font-medium text-foreground tracking-wider text-right">Ações</div>
                                             </div>
 
-                                            {/* Empty State */}
-                                            <div className="flex flex-col items-center justify-center py-16 text-center">
-                                                <p className="text-muted-foreground font-medium">Nenhuma oferta criada ainda</p>
-                                            </div>
+                                            {/* Offer List */}
+                                            {offers.length > 0 ? (
+                                                <div className="divide-y divide-border">
+                                                    {offers.map((offer) => (
+                                                        <div key={offer.id} className="flex items-center w-full px-6 py-4 hover:bg-muted/5 transition-colors">
+                                                            <div className="flex-[2] text-sm font-medium text-foreground">{offer.name}</div>
+                                                            <div className="flex-[2] text-sm text-muted-foreground">
+                                                                {offer.original_price
+                                                                    ? new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(offer.original_price)
+                                                                    : '-'
+                                                                }
+                                                            </div>
+                                                            <div className="flex-1 text-sm font-medium text-foreground">
+                                                                {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(offer.price)}
+                                                            </div>
+                                                            <div className="flex-1 flex items-center gap-2">
+                                                                {/* Mock Link logic for now */}
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                                                    <LinkIcon className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                            <div className="flex-1 flex items-center gap-2">
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                                                    <ExternalLink className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                            <div className="flex-[0.5] flex justify-end">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                    disabled={isDeletingOffer === offer.id}
+                                                                    onClick={async () => {
+                                                                        if (confirm("Tem certeza que deseja excluir esta oferta?")) {
+                                                                            setIsDeletingOffer(offer.id);
+                                                                            await deleteOffer(offer.id, id);
+                                                                            setOffers(prev => prev.filter(o => o.id !== offer.id));
+                                                                            setIsDeletingOffer(null);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {isDeletingOffer === offer.id ? <Spinner className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                                    <p className="text-muted-foreground font-medium">Nenhuma oferta criada ainda</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
